@@ -1,5 +1,5 @@
 from logging import exception
-from builtins import Exception, dict
+from builtins import Exception, dict, object
 from selenium import webdriver
 import time
 
@@ -36,6 +36,8 @@ import numpy as np
 from numpy import asarray
 
 sme = SmilesEnumerator()
+import random    
+
 
 #rx="[N+]CCC(Al[N+]CCCC[N+])BrO"
 #O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O
@@ -48,195 +50,221 @@ rx="S(c1ccc(C)cc1)(O[->.]C([.>-]Oc2c(c3ccccc3)cccc2)CCCCCCl)(=O)=O.N(C=O)(C)C.C(
 
 #rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
 
-atoms = sorted([
-            'Al', 'As', 'B', 'Br', 'C', 'Cl',  'K', 'Li', 'N',
-            'Na', 'O', 'P', 'S', 'Se', 'Si', 'Te','Mg','Cu','Zn','Pd','Pt','Fe',
-            'Pb','Hg','Zr','Mn','Ti','Ca','Cr','Sb','Ce','Rh','Ru',
-            'Ag','Tl','Re','Ir','Ni','Ba','Au','Ge','W','Mo','Xe','Ga','Cd','Ta','Bi','He',
-            'Sm','V','Nd','Be','Sr', 'Dy','Yb','La','Y'
-        ],key=len)
 
-ic(atoms)
 
-cgrGrammar=['[.>-]', '[.>=]', '[.>#]', '[.>:]', '[.>~]', '[->.]', '[->=]', '[->#]', '[->:]',\
-             '[->~]', '[=>.]', '[=>-]',  '[=>#]', '[=>:]', '[=>~]', '[#>.]', '[#>-]', '[#>=]',\
-              '[#>:]', '[#>~]', '[:>.]', '[:>-]', '[:>=]', '[:>#]',  '[:>~]', '[~>.]', '[~>-]',\
-               '[~>=]', '[~>#]', '[~>:]']
+class CGREnumerator(object):
+    _ATOMS = sorted([
+                'Al', 'As', 'B', 'Br', 'C', 'Cl',  'K', 'Li', 'N',
+                'Na', 'O', 'P', 'S', 'Se', 'Si', 'Te','Mg','Cu','Zn','Pd','Pt','Fe',
+                'Pb','Hg','Zr','Mn','Ti','Ca','Cr','Sb','Ce','Rh','Ru',
+                'Ag','Tl','Re','Ir','Ni','Ba','Au','Ge','W','Mo','Xe','Ga','Cd','Ta','Bi','He',
+                'Sm','V','Nd','Be','Sr', 'Dy','Yb','La','Y'
+            ],key=len)
 
-regExpression='(?<!\[|-|=|\)|\>)\.'
 
-stack=[]
 
-mapping={"Ta+": "->.",
-         "Rf": ".>-",
-         "Bk-":".>=",
-         
+    _CGRGRAMMAR=['[.>-]', '[.>=]', '[.>#]', '[.>:]', '[.>~]', '[->.]', '[->=]', '[->#]', '[->:]',\
+                '[->~]', '[=>.]', '[=>-]',  '[=>#]', '[=>:]', '[=>~]', '[#>.]', '[#>-]', '[#>=]',\
+                '[#>:]', '[#>~]', '[:>.]', '[:>-]', '[:>=]', '[:>#]',  '[:>~]', '[~>.]', '[~>-]',\
+                '[~>=]', '[~>#]', '[~>:]']
+
+    _REGEXPRESSION='(?<!\[|-|=|\)|\>)\.'
     
-}
+    def __init__(self,nTrials)->None:
+        self.nTrials=nTrials
+        self.cgrS=[] 
+        self.sme= SmilesEnumerator()  
+        self._rxInverse=[]
+        self.succesRation=0.
 
-def createVariation(lst)->list:
-        global sme
+    
+
+
+    def createVariation(self,lst)->list:
+        
         shuffle(lst)
-        return [sme.randomize_smiles(rx) for rx in lst]
+        return [self.sme.randomize_smiles(rx) for rx in lst]
+    
+    def enhanceCGR(self,rx)->None:
+        for _ in range(self.nTrials):
+            lstSMILES=[]
+            compounds=re.split(self._REGEXPRESSION,rx)
+            compounds_copy=compounds[:]
+            for elem in compounds_copy:
+                if not any([x in elem for x in self._CGRGRAMMAR]):
+                    lstSMILES.append(elem)
+                    compounds.remove(elem)
+        
+            compounds_copy=compounds[:]   
+            compounds=[]
+            for elem in compounds_copy:
+                    cgrIdx=np.where(asarray([x in elem for x in self._CGRGRAMMAR])==True)[0]
+                    notCGrIdx=np.where(asarray([x in elem for x in self._CGRGRAMMAR])==False)[0]
+                    cgrBonds=list(asarray(self._CGRGRAMMAR)[cgrIdx])
+                    cgrBond_original=cgrBonds[:]
+                    
+                    
+                    
+                    idx=[random.randrange(0,len(notCGrIdx)) for x in range(len(cgrIdx))]
+                    atomsPresent=asarray(self._ATOMS)[np.where(asarray([x in elem for x in self._ATOMS])==True)[0]]
+                    atomsNotPresent=asarray(self._ATOMS) \
+                                         [np.where(asarray([x in elem for x in self._ATOMS])==False)[0]][0:len(cgrIdx)]
+                    atomsNotPresent=["[*:"+str(i)+"]" for (i,x) in enumerate(atomsNotPresent)]
+                    dictReplacement=dict(zip(cgrBonds,atomsNotPresent))
+                    rx_new=elem
+                    for key, value in dictReplacement.items():
+                        rx_new=rx_new.replace(key,value)
+                    try:
+                        rx_new=sme.randomize_smiles(rx_new)
+                    except Exception as e:
+                        continue    
+                    for key, value in dictReplacement.items():
+                        rx_new=rx_new.replace(value,key)
+
+                    compounds.append(rx_new)
+                    
+            del compounds_copy    
+            
+            _order=random.choice([True,False])
+            shuffle(compounds)
+            rxSMILES=self.createVariation(lstSMILES)
+            cgrSTR=".".join(1 and (rxSMILES.extend(compounds) if _order else compounds.extend(rxSMILES) )\
+                                or (rxSMILES if _order else compounds))
+            
+            
+            
+            try:
+                cgrObj=next(cgr.files.SMILESRead(StringIO(cgrSTR)))
+                decomposed = ReactionContainer.from_cgr(cgrObj)
+                if cgrSTR not in self.cgrS:
+                    self.cgrS.append(cgrSTR)
+            except Exception as e:
+                continue
+            
+            decomposed.clean2d()
+            
+            if str(decomposed) not in self._rxInverse:
+                self._rxInverse.append(str(decomposed))
+            
+            self.successRatio=len(self.cgrS)/self.nTrials
+            #ic(len(cgrS),len(_rxInverse))
+            #ic(success_ratio)
+            #ic()
+            
+if __name__ == '__main__':
+        enum=CGREnumerator(1222)   
+        enum.enhanceCGR(rx)
+        
+        for i in enum.cgrS:
+            ic(i)
+        
+        ic(enum.successRatio)        
+        ic(len(enum._rxInverse))
+        ic(len(enum.cgrS))
 
 
 
 
 
-m = re.split(regExpression, rx)
-ic(rx)
-print(m)
 
 
 
 
-_rxInverse=[]
 
-
-nn=22
+"""
 for _ in range(nn):
     lstSMILES=[]
     compounds=re.split(regExpression,rx)
     compounds_copy=compounds[:]
     for elem in compounds_copy:
-        #ic(len(compounds))
-        #print([x in elem for x in cgrGrammar])
-        
-        #ic(cgrIdx)
+       
         
         
         if not any([x in elem for x in cgrGrammar]):
-        #if len(cgrIdx)==0:
             lstSMILES.append(elem)
             compounds.remove(elem)
         
     compounds_copy=compounds[:]   
-    #ic(compounds_copy)
     compounds=[]
     for elem in compounds_copy:
             cgrIdx=np.where(asarray([x in elem for x in cgrGrammar])==True)[0]
             notCGrIdx=np.where(asarray([x in elem for x in cgrGrammar])==False)[0]
-            #ic(cgrIdx)
             cgrBonds=list(asarray(cgrGrammar)[cgrIdx])
             cgrBond_original=cgrBonds[:]
-            #cgrBonds=[]
-            """
-            for el in cgrBond_original:
-                #a=[m.start() for m in re.finditer(el, elem)]
-                a=elem.find(el)
-                ic(a)
-                ic(el)
-                ic(len(elem))
-                #ic(elem[10])
-                adds=""
-                if elem[a-1] not in ["]",")"] and elem[a+len(el)] not in ["[","("]:
-                    adds=elem[a-1]+el+elem[a+len(el)]
-                    ic("adds1",adds)
-                elif elem[a-1] in ["]",")"] and elem[a+len(el)] in ["[","("]: 
-                    adds=el    
-                    ic(adds)
-                else:    
-                    adds=el+elem[a+len(el)]    
-                    ic("adds2",adds)
-                    
-                #adds=elem[a-1]+el+elem[a+len(el)] if elem[a-1] not in ["]",")"] else 
-                print(adds)
-             #   cgrBonds.append(adds)
-             """
+            
+            
             import random    
             idx=[random.randrange(0,len(notCGrIdx)) for x in range(len(cgrIdx))]
             atomsPresent=asarray(atoms)[np.where(asarray([x in elem for x in atoms])==True)[0]]
-            #aa=np.random.randint(len)
             atomsNotPresent=asarray(atoms)[np.where(asarray([x in elem for x in atoms])==False)[0]][0:len(cgrIdx)]
-            #atomsNotPresent=asarray(atoms)[np.where(asarray([x in elem for x in atoms])==False)[0]][idx]
-            #atomsNotPresent=["["+x+"-]" for x in atomsNotPresent]
-            #atomsNotPresent=["[*:"+str(i)+"]" for (i,x) in enumerate(atomsNotPresent)]
-            atomsNotPresent=["(*:"+str(i)+")" for (i,x) in enumerate(atomsNotPresent)]
-            #atomsNotPresent=["[*]" for (i,x) in enumerate(atomsNotPresent)]
-            #atomsNotPresent=["" for (i,x) in enumerate(atomsNotPresent)]
+            atomsNotPresent=["[*:"+str(i)+"]" for (i,x) in enumerate(atomsNotPresent)]
+            
             dictReplacement=dict(zip(cgrBonds,atomsNotPresent))
-            ic(dictReplacement)
-            ic(atomsNotPresent)
             rx_new=elem
             for key, value in dictReplacement.items():
                 rx_new=rx_new.replace(key,value)
-                pass
-            ic("---------------------------------------")
-            ic(elem)
-            ic(rx_new)
             try:
                 rx_new=sme.randomize_smiles(rx_new)
-                pass
             except Exception as e:
-                ic(e)
                 continue    
-            ic(rx_new)
             for key, value in dictReplacement.items():
                   rx_new=rx_new.replace(value,key)
-                  pass
-            ic(rx_new)
-            compounds.append(rx_new)
-            #compounds.append(elem)
-               
-                
-            
 
-            #ic(atomsPresent)
-            #ic(atomsNotPresent)
-            #ic(cgrBonds)
-            #ic(dict(zip(cgrBonds,atomsNotPresent)))
-            
-            #ic(asarray(atoms)[atomsPresent])
-            
+            compounds.append(rx_new)
+               
     del compounds_copy    
     
     import random 
     _order=random.choice([True,False])
-    _order=True
     shuffle(compounds)
     rxSMILES=createVariation(lstSMILES)
-    
-    ic(rxSMILES)
-    
-    
-    print("###############################################")
-    
     cgrSTR=".".join(1 and (rxSMILES.extend(compounds) if _order else compounds.extend(rxSMILES) )\
                         or (rxSMILES if _order else compounds))
-    ic(cgrSTR)
-    #r="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
-    #container=next(cgr.files.SMILESRead(StringIO(r)))
+    
+    
     
     try:
         cgrObj=next(cgr.files.SMILESRead(StringIO(cgrSTR)))
         decomposed = ReactionContainer.from_cgr(cgrObj)
+        if cgrSTR not in cgrS:
+           cgrS.append(cgrSTR)
+
     except Exception as e:
-        ic(e)     
+        #ic(e)     
         continue
     
-    
-    decomposed.clean2d()
-    ic(str(decomposed))
-    
-    if str(decomposed) not in _rxInverse:
-        _rxInverse.append(str(decomposed))
-    ic(_rxInverse)
-    ic(len(_rxInverse))
-    
-    ic(rx)
-    ic(lstSMILES)        
-    ic(compounds)        
-    
-    
-            
-        
-    
-"""
-    rx_new=sme.randomize_smiles(rx)
-    for key, value in mapping.items():
-        rx_new=rx_new.replace(key,value)
 
     
     
-    print(rx_new)
+    decomposed.clean2d()
+    #ic(str(decomposed))
+    
+    if str(decomposed) not in _rxInverse:
+        _rxInverse.append(str(decomposed))
+    #ic(_rxInverse)
+    #ic(len(_rxInverse))
+    
+    #ic(rx)
+    #ic(lstSMILES)        
+    #ic(compounds)        
+    success_ratio=len(cgrS)/nn
+    ic(len(cgrS),len(_rxInverse))
+    ic(success_ratio)
+    #ic()
+    
+            
+aaa=[]
+
+for elem in cgrS:
+    ic(elem)
+    
+    #cgrObj=next(cgr.files.SMILESRead(StringIO(elem)))
+    #decomposed = ReactionContainer.from_cgr(cgrObj)
+    #aaa.append(str(decomposed))
+    #ic(str(decomposed))
+    #decomposed.clean2d()
+    
+#print(len(set(aaa)))
+        
+
 """
