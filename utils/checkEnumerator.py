@@ -34,8 +34,6 @@ import CGRtools as cgr
 from io import StringIO
 import numpy as np
 from numpy import asarray
-
-sme = SmilesEnumerator()
 import random    
 
 
