@@ -150,8 +150,8 @@ for _ in range(nn):
             atomsNotPresent=asarray(atoms)[np.where(asarray([x in elem for x in atoms])==False)[0]][0:len(cgrIdx)]
             #atomsNotPresent=asarray(atoms)[np.where(asarray([x in elem for x in atoms])==False)[0]][idx]
             #atomsNotPresent=["["+x+"-]" for x in atomsNotPresent]
-            atomsNotPresent=["[*:"+str(i)+"]" for (i,x) in enumerate(atomsNotPresent)]
-            #atomsNotPresent=["(*:"+str(i)+")" for (i,x) in enumerate(atomsNotPresent)]
+            #atomsNotPresent=["[*:"+str(i)+"]" for (i,x) in enumerate(atomsNotPresent)]
+            atomsNotPresent=["(*:"+str(i)+")" for (i,x) in enumerate(atomsNotPresent)]
             #atomsNotPresent=["[*]" for (i,x) in enumerate(atomsNotPresent)]
             #atomsNotPresent=["" for (i,x) in enumerate(atomsNotPresent)]
             dictReplacement=dict(zip(cgrBonds,atomsNotPresent))
