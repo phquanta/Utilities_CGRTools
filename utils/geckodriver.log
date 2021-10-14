@@ -2246,3 +2246,9 @@ JavaScript warning: http://mapper.grzybowskigroup.pl/marvinjs/jawor/jquery-1.9.1
 Exiting due to channel error.
 Exiting due to channel error.
 Exiting due to channel error.
+A content process crashed and MOZ_CRASHREPORTER_SHUTDOWN is set, shutting down
+1634184909090	Marionette	INFO	Stopped listening on port 44097
+JavaScript error: resource:///modules/Interactions.jsm, line 230: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
