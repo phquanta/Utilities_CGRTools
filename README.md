@@ -2,3 +2,4 @@
 ### Main files are:
  * utils.py
  * dataEnhancer.py
+ * checkEnumerator.py (Standalone unit-like test)
