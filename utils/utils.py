@@ -95,7 +95,10 @@ class CGRUitls(object):
         
     def __init__(self,useSelenium=True):
         self.sme = SmilesEnumerator()
-        self.selenium=SeleniumMarvinJs()
+        if useSelenium:
+            self.selenium=SeleniumMarvinJs()
+        else:
+            self.selenium=None
         self.enumerator=CGREnumerator()   
         #enumerator.enhanceCGR(rx)
         return
@@ -234,12 +237,15 @@ class CGRUitls(object):
         
         
     
-    def enhanceSMIRKS(self,numVariations,rx)->list:
+    def enhanceCGRs(self,numVariations,rx)->list:
         rxAll=[]
         self.enumerator.nTrials=numVariations
+        self.enumerator.enhanceCGR(rx)
+        self.enumerator.unwind=False
+        rxAll=self.enumerator.cgrS[:]
         
-        enumerator.enhanceCGR(rx)
-       
+#          for i in enumerator.cgrS:
+ #               ic(i)
         
         return rxAll
             

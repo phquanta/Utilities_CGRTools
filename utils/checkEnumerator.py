@@ -43,6 +43,8 @@ import random
 class CGREnumerator(object):
     _instance = None
     _MAX_FAILURES=500
+    _MAX_SUCCESSIVE=100
+    _OFFSET_TOCOUNT_MEAN=10
     _DEFAULT_NUM_TRIALS=1
     _ATOMS = sorted([
                 'Al', 'As', 'B', 'Br', 'C', 'Cl',  'K', 'Li', 'N',
@@ -54,13 +56,22 @@ class CGREnumerator(object):
 
 
 
-    _CGRGRAMMAR=['[.>-]', '[.>=]', '[.>#]', '[.>:]', '[.>~]', '[->.]', '[->=]', '[->#]', '[->:]',\
+    _CGR_CORE_GRAMMAR=['[.>-]', '[.>=]', '[.>#]', '[.>:]', '[.>~]', '[->.]', '[->=]', '[->#]', '[->:]',\
                 '[->~]', '[=>.]', '[=>-]',  '[=>#]', '[=>:]', '[=>~]', '[#>.]', '[#>-]', '[#>=]',\
                 '[#>:]', '[#>~]', '[:>.]', '[:>-]', '[:>=]', '[:>#]',  '[:>~]', '[~>.]', '[~>-]',\
                 '[~>=]', '[~>#]', '[~>:]']
+    _CGR_PROBLEM_SPECIFIC=['[N+>0]','[O->0]','[O0>-]','[Fe+>+3]','[N0>+]','Cl->0])',\
+                 '[I->0]','[Mn+>+3]']
+    _NOT_IMPLEMENTED=[]
+    
+    #_NOT_IMPLEMENTED=[ '[N+>0]','[O->0]','[N0>+]','[O0>-]']
+    
+    
+    _CGRGRAMMAR=_CGR_CORE_GRAMMAR+_CGR_PROBLEM_SPECIFIC
 
     _REGEXPRESSION='(?<!\[|-|=|\)|\>)\.'
     
+    """
     def __new__(cls):
         if cls._instance is None:
             print('Creating the object')
@@ -73,8 +84,13 @@ class CGREnumerator(object):
             cls._instance.eps=1.E-5
             cls._instance.unwind=False
         return cls._instance
+    """    
     
-    #def __init__(self,nTrials=1)->None:
+    def __init__(self,nTrials=1)->None:
+            self.nTrials=self._DEFAULT_NUM_TRIALS
+            self.sme= SmilesEnumerator()  
+            self.eps=1.E-5
+            self.unwind=False
         
      
 
@@ -91,14 +107,18 @@ class CGREnumerator(object):
     
     def enhanceCGR(self,rx,Flag=True)->None:
         self.cgrS=[]
+        self._rxInverse=[]
         counter=0
         #for _ in range(self.nTrials):
         counterFailed=0
+        lengths=[]
+        
         while True:    
             counter=counter+1
             
             lstSMILES=[]
             compounds=re.split(self._REGEXPRESSION,rx)
+            
             #ic(compounds)
             
             compounds_copy=compounds[:]
@@ -124,15 +144,20 @@ class CGREnumerator(object):
                     atomsNotPresent=["[*:"+str(i)+"]" for (i,x) in enumerate(atomsNotPresent)]
                     dictReplacement=dict(zip(cgrBonds,atomsNotPresent))
                     rx_new=elem
-                    if Flag:
-                        for key, value in dictReplacement.items():
-                            rx_new=rx_new.replace(key,value)
-                        try:
-                            rx_new=self.sme.randomize_smiles(rx_new)
-                        except Exception as e:
-                            continue    
-                        for key, value in dictReplacement.items():
-                            rx_new=rx_new.replace(value,key)
+                    if not any([x in rx_new for x in self._NOT_IMPLEMENTED]) and Flag:
+#                        if Flag:
+                            for key, value in dictReplacement.items():
+                                
+                                rx_new=rx_new.replace(key,value)
+                                
+                            #ic(elem,rx_new)
+                            
+                            try:
+                                rx_new=self.sme.randomize_smiles(rx_new)
+                            except Exception as e:
+                                continue    
+                            for key, value in dictReplacement.items():
+                                rx_new=rx_new.replace(value,key)
 
                     compounds.append(rx_new)
                     
@@ -154,7 +179,7 @@ class CGREnumerator(object):
             
             #if Flag==False:
             #    print(cgrSTR)
-            ic("HEREEREE1111111111",counter)
+            #ic("HEREEREE1111111111",counter)
             
             try:
                 cgrObj=next(cgr.files.SMILESRead(StringIO(cgrSTR)))
@@ -165,7 +190,7 @@ class CGREnumerator(object):
                     #ic(cgrSTR)
             except Exception as e:
                 #ic("2",e)
-                  ic(counterFailed,Flag)
+                  #ic(counterFailed,Flag,counter)
                   counterFailed=counterFailed+1
                   if counterFailed>self._MAX_FAILURES and Flag==True:
                         self.unwind=True
@@ -175,7 +200,7 @@ class CGREnumerator(object):
                   else:
                         continue  
             if self.unwind==True and Flag==True: return        
-            #ic("HERE",counterFailed,Flag)
+#            ic("HERE",counterFailed,Flag,counter,self.cgrS)
             self.decomposed.clean2d()
             
             if str(self.decomposed) not in self._rxInverse:
@@ -183,9 +208,18 @@ class CGREnumerator(object):
             
             self.successRatio=len(self.cgrS)/counter
             if len(self.cgrS)==self.nTrials: return
-            ic(counterFailed)
+            #ic(counterFailed)
             if self.successRatio<self.eps and Flag==False and  counterFailed>self._MAX_FAILURES:
                 return
+            lengths.append(len(self.cgrS))
+            if len(lengths)>self._OFFSET_TOCOUNT_MEAN:
+                #ic(lengths[-self._OFFSET_TOCOUNT_MEAN:])
+                #ic(np.mean(lengths[-self._OFFSET_TOCOUNT_MEAN:]))
+                if int(np.mean(lengths[-self._OFFSET_TOCOUNT_MEAN:]))==len(self.cgrS) and counter>=self._MAX_SUCCESSIVE:
+                    return
+            #lengths.append(len(self.cgrS))    
+                    
+            
             #if self.successRatio<self.eps and Flag==True  and counter>2*self.nTrials:
             #      print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
             #      self.enhanceCGR(rx,Flag=False)  
@@ -207,12 +241,20 @@ if __name__ == '__main__':
         #rx="C(CC[N+][Ta+]C[Bk-]O)C([O-])=O"
         #rx="C(C(N[->.]C(CNC)=O)CCC(N)=O)(=O)O.CN"
 
-        rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
+        #rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
+        #rx="O[=>-]O.[N+>0][->.]C(CC[N+])[.>=]O"
+        #rx="O[=>-]O.CC(C)CCCC(C)CCCC(CCCC(C(C(=O)[O-])[->=]O)C)C"
+        #rx="O[=>-]O.[N+>0][->.]C(CC[N+])[.>=]O"
+        #rx="O[=>-]O.O=C(C(C(O)C([->=]O)CO)O)CO"
+        #rx="O[=>-]O.O.N"
+        #rx="O[=>-]O.NCCCC([->.]N)[.>=]O"
+        
+        #rx="O[->.]O.O[->.]O"
+        
+        rx="C[.>-]1([->.]C([.>=]O[->.]O)(=O)[->.]C[.>-]1(=O)[O-])CCC[N+]"
         enumerator=CGREnumerator()   
         enumerator.nTrials=10
         enumerator.enhanceCGR(rx)
-
-
         
         for i in enumerator.cgrS:
             ic(i)

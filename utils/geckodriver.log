@@ -2195,3 +2195,54 @@ JavaScript warning: http://mapper.grzybowskigroup.pl/marvinjs/jawor/jquery-1.9.1
 Exiting due to channel error.
 Exiting due to channel error.
 Exiting due to channel error.
+1634176802246	geckodriver	INFO	Listening on 127.0.0.1:37623
+1634176802256	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofileQ3wlGO"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+[GFX1-]: More than 2 GPUs detected via PCI, secondary GPU is arbitrary
+1634176803325	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileQ3wlGO/search.json.mozlz4", (void 0)))
+1634176805626	Marionette	INFO	Listening on port 43405
+1634176805692	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+1634176807198	Marionette	INFO	Stopped listening on port 43405
+JavaScript error: resource:///modules/Interactions.jsm, line 201: NS_ERROR_FAILURE: Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIUserIdleService.removeIdleObserver]
+console.warn: TopSitesFeed: Failed to fetch data from Contile server: NetworkError when attempting to fetch resource.
+JavaScript error: chrome://remote/content/marionette/cert.js, line 55: NS_ERROR_NOT_AVAILABLE: Component returned failure code: 0x80040111 (NS_ERROR_NOT_AVAILABLE) [nsICertOverrideService.setDisableAllSecurityChecksAndLetAttackersInterceptMyData]
+
+###!!! [Parent][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1634176844538	geckodriver	INFO	Listening on 127.0.0.1:33141
+1634176844548	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofilei7mQ6B"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+[GFX1-]: More than 2 GPUs detected via PCI, secondary GPU is arbitrary
+1634176845708	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilei7mQ6B/search.json.mozlz4", (void 0)))
+1634176847856	Marionette	INFO	Listening on port 44935
+1634176847895	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: http://mapper.grzybowskigroup.pl/marvinjs/jawor/jquery-1.9.1.min.js, line 2: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+Exiting due to channel error.
+Exiting due to channel error.
+Exiting due to channel error.
+1634177168217	geckodriver	INFO	Listening on 127.0.0.1:60975
+1634177168228	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofileD2QQe7"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+[GFX1-]: More than 2 GPUs detected via PCI, secondary GPU is arbitrary
+1634177169280	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofileD2QQe7/search.json.mozlz4", (void 0)))
+1634177171386	Marionette	INFO	Listening on port 34263
+1634177171461	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: http://mapper.grzybowskigroup.pl/marvinjs/jawor/jquery-1.9.1.min.js, line 2: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+Exiting due to channel error.
+Exiting due to channel error.
+Exiting due to channel error.
+1634177552071	geckodriver	INFO	Listening on 127.0.0.1:39083
+1634177552080	mozrunner::runner	INFO	Running command: "/usr/bin/firefox" "--marionette" "-no-remote" "-profile" "/tmp/rust_mozprofilel7E2tD"
+[GFX1-]: More than 1 GPU from same vendor detected via PCI, cannot deduce device
+[GFX1-]: More than 2 GPUs detected via PCI, secondary GPU is arbitrary
+1634177553116	Marionette	INFO	Marionette enabled
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at /tmp/rust_mozprofilel7E2tD/search.json.mozlz4", (void 0)))
+1634177555258	Marionette	INFO	Listening on port 34991
+1634177555322	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+JavaScript warning: http://mapper.grzybowskigroup.pl/marvinjs/jawor/jquery-1.9.1.min.js, line 2: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+Exiting due to channel error.
+Exiting due to channel error.
+Exiting due to channel error.
