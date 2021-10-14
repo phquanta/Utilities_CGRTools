@@ -166,20 +166,11 @@ class CGREnumerator(object):
             _order=random.choice([True,False])
             shuffle(compounds)
             rxSMILES=self.createVariation(lstSMILES)
-            #if _order:
-            #    rxSMILES.extend(compounds) 
-            #    cgrSTR=".".join(rxSMILES)
-            
-            #elif not _order:
-            #    compounds.extend(rxSMILES)    
-            #    cgrSTR=".".join(compounds)
+        
                 
             cgrSTR=".".join(1 and (rxSMILES.extend(compounds) if _order else compounds.extend(rxSMILES) )\
                                 or (rxSMILES if _order else compounds))
             
-            #if Flag==False:
-            #    print(cgrSTR)
-            #ic("HEREEREE1111111111",counter)
             
             try:
                 cgrObj=next(cgr.files.SMILESRead(StringIO(cgrSTR)))
@@ -217,19 +208,6 @@ class CGREnumerator(object):
                 #ic(np.mean(lengths[-self._OFFSET_TOCOUNT_MEAN:]))
                 if int(np.mean(lengths[-self._OFFSET_TOCOUNT_MEAN:]))==len(self.cgrS) and counter>=self._MAX_SUCCESSIVE:
                     return
-            #lengths.append(len(self.cgrS))    
-                    
-            
-            #if self.successRatio<self.eps and Flag==True  and counter>2*self.nTrials:
-            #      print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
-            #      self.enhanceCGR(rx,Flag=False)  
-            
-        #if self.successRatio<self.eps and Flag==True:
-              #print(rx)
-        #      self.enhanceCGR(rx,Flag=False)
-            #ic(len(cgrS),len(_rxInverse))
-            #ic(success_ratio)
-            #ic()
             
 if __name__ == '__main__':
         #rx="[N+]CCC(Al[N+]CCCC[N+])BrO"
