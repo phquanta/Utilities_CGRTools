@@ -41,7 +41,7 @@ import random
 
 
 class CGREnumerator(object):
-    _MAX_FAILURES=100
+    _MAX_FAILURES=500
     _ATOMS = sorted([
                 'Al', 'As', 'B', 'Br', 'C', 'Cl',  'K', 'Li', 'N',
                 'Na', 'O', 'P', 'S', 'Se', 'Si', 'Te','Mg','Cu','Zn','Pd','Pt','Fe',
@@ -66,6 +66,7 @@ class CGREnumerator(object):
         self._rxInverse=[]
         self.successRatio=0.
         self.eps=1.E-5
+        self.unwind=False
 
     
 
@@ -73,7 +74,10 @@ class CGREnumerator(object):
     def createVariation(self,lst)->list:
         
         shuffle(lst)
-        return [self.sme.randomize_smiles(rx) if random.choice([True,False])==True else rx for rx in lst ]
+        try:
+            return [self.sme.randomize_smiles(rx) if random.choice([True,False])==True else rx for rx in lst ]
+        except Exception as e:
+            return [rx  for rx in lst ]
     
     def enhanceCGR(self,rx,Flag=True)->None:
         self.cgrS=[]
@@ -140,24 +144,28 @@ class CGREnumerator(object):
             
             #if Flag==False:
             #    print(cgrSTR)
-            #ic("HEREEREE1111111111")
+            ic("HEREEREE1111111111",counter)
             
             try:
                 cgrObj=next(cgr.files.SMILESRead(StringIO(cgrSTR)))
                 self.decomposed = ReactionContainer.from_cgr(cgrObj)
-                ic(str(self.decomposed))
+                #ic(str(self.decomposed))
                 if cgrSTR not in self.cgrS:
                     self.cgrS.append(cgrSTR)
                     #ic(cgrSTR)
             except Exception as e:
                 #ic("2",e)
+                  ic(counterFailed,Flag)
                   counterFailed=counterFailed+1
-                  print(counterFailed,counter)
-                  if counterFailed>self.nTrials and counter>self._MAX_FAILURES and Flag==True:
+                  if counterFailed>self._MAX_FAILURES and Flag==True:
+                        self.unwind=True
                         self.enhanceCGR(rx,Flag=False) 
-                  else:      
-                        continue
-            
+                  elif Flag==False and  counterFailed>=self._MAX_FAILURES:  
+                        return
+                  else:
+                        continue  
+            if self.unwind==True and Flag==True: return        
+            #ic("HERE",counterFailed,Flag)
             self.decomposed.clean2d()
             
             if str(self.decomposed) not in self._rxInverse:
@@ -165,6 +173,9 @@ class CGREnumerator(object):
             
             self.successRatio=len(self.cgrS)/counter
             if len(self.cgrS)==self.nTrials: return
+            ic(counterFailed)
+            if self.successRatio<self.eps and Flag==False and  counterFailed>self._MAX_FAILURES:
+                return
             #if self.successRatio<self.eps and Flag==True  and counter>2*self.nTrials:
             #      print("AAAAAAAAAAAAAAAAAAAAAAAAAAA")
             #      self.enhanceCGR(rx,Flag=False)  
@@ -178,7 +189,7 @@ class CGREnumerator(object):
             
 if __name__ == '__main__':
         #rx="[N+]CCC(Al[N+]CCCC[N+])BrO"
-        #rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
+        rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
 
         #rx="[P-](F)(F)(F)(F)(F)F.C([.>-]Nc1ccc(N2CCOCC2)nc1)(Cc3ccc(c4cc(ncc4)C)cc3)([->=]O)[=>.]O.c56c(cccn5)nnn6OC(N(C)C)=[N+](C)C.N(C=O)(C)C.N(CC)(C(C)C)C(C)C"
         #rx="[N+](Cc1ccccc1)(CCCC)(CCCC)CCCC.c2(C([.>-]C([->.][Na])#N)[->.]Cl)c(cc(cc2)CC(NC(c3c(N4CCCCC4)cccc3)CCC)=O)OCC.C(Cl)Cl.O.[K+].[Cl-].[I-]"
@@ -186,7 +197,7 @@ if __name__ == '__main__':
         #rx="C(CC[N+][Ta+]C[Bk-]O)C([O-])=O"
         #rx="C(C(N[->.]C(CNC)=O)CCC(N)=O)(=O)O.CN"
 
-        rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
+        #rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
         enumerator=CGREnumerator(10)   
         enumerator.enhanceCGR(rx)
 
