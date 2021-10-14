@@ -238,7 +238,7 @@ class CGRUitls(object):
         rxAll=[]
         self.enumerator.nTrials=numVariations
         
-        
+        enumerator.enhanceCGR(rx)
        
         
         return rxAll

@@ -41,7 +41,9 @@ import random
 
 
 class CGREnumerator(object):
+    _instance = None
     _MAX_FAILURES=500
+    _DEFAULT_NUM_TRIALS=1
     _ATOMS = sorted([
                 'Al', 'As', 'B', 'Br', 'C', 'Cl',  'K', 'Li', 'N',
                 'Na', 'O', 'P', 'S', 'Se', 'Si', 'Te','Mg','Cu','Zn','Pd','Pt','Fe',
@@ -59,14 +61,22 @@ class CGREnumerator(object):
 
     _REGEXPRESSION='(?<!\[|-|=|\)|\>)\.'
     
-    def __init__(self,nTrials=1)->None:
-        self.nTrials=nTrials
-        self.cgrS=[] 
-        self.sme= SmilesEnumerator()  
-        self._rxInverse=[]
-        self.successRatio=0.
-        self.eps=1.E-5
-        self.unwind=False
+    def __new__(cls):
+        if cls._instance is None:
+            print('Creating the object')
+            cls._instance = super(CGREnumerator, cls).__new__(cls)
+            cls._instance.nTrials=cls._DEFAULT_NUM_TRIALS
+            cls._instance.cgrS=[] 
+            cls._instance.sme= SmilesEnumerator()  
+            cls._instance._rxInverse=[]
+            cls._instance.successRatio=0.
+            cls._instance.eps=1.E-5
+            cls._instance.unwind=False
+        return cls._instance
+    
+    #def __init__(self,nTrials=1)->None:
+        
+     
 
     
 
@@ -189,7 +199,7 @@ class CGREnumerator(object):
             
 if __name__ == '__main__':
         #rx="[N+]CCC(Al[N+]CCCC[N+])BrO"
-        rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
+        #rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
 
         #rx="[P-](F)(F)(F)(F)(F)F.C([.>-]Nc1ccc(N2CCOCC2)nc1)(Cc3ccc(c4cc(ncc4)C)cc3)([->=]O)[=>.]O.c56c(cccn5)nnn6OC(N(C)C)=[N+](C)C.N(C=O)(C)C.N(CC)(C(C)C)C(C)C"
         #rx="[N+](Cc1ccccc1)(CCCC)(CCCC)CCCC.c2(C([.>-]C([->.][Na])#N)[->.]Cl)c(cc(cc2)CC(NC(c3c(N4CCCCC4)cccc3)CCC)=O)OCC.C(Cl)Cl.O.[K+].[Cl-].[I-]"
@@ -197,8 +207,9 @@ if __name__ == '__main__':
         #rx="C(CC[N+][Ta+]C[Bk-]O)C([O-])=O"
         #rx="C(C(N[->.]C(CNC)=O)CCC(N)=O)(=O)O.CN"
 
-        #rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
-        enumerator=CGREnumerator(10)   
+        rx="O[=>-]O.C(CC[N+][->.]C[.>=]O)C([O-])=O"
+        enumerator=CGREnumerator()   
+        enumerator.nTrials=10
         enumerator.enhanceCGR(rx)
 
 
