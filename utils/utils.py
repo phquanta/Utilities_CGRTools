@@ -31,6 +31,8 @@ import xml.etree.ElementTree as ET
 #def getSMILESCGRS(*args):
 
 
+from checkEnumerator import CGREnumerator
+
 class formSMIRKSromLst(object):
         def __init__(self,inRx,outRx):
             self.inRx= inRx
@@ -94,6 +96,8 @@ class CGRUitls(object):
     def __init__(self,useSelenium=True):
         self.sme = SmilesEnumerator()
         self.selenium=SeleniumMarvinJs()
+        self.enumerator=CGREnumerator()   
+        #enumerator.enhanceCGR(rx)
         return
     
     
@@ -230,27 +234,12 @@ class CGRUitls(object):
         
         
     
-    def enhanceSMIRKS(self,numVariations)->list:
+    def enhanceSMIRKS(self,numVariations,rx)->list:
         rxAll=[]
-        for elem in self.lstSMIRKS:
-            allLst=elem.split(">>")
-            reactants=allLst[0].split(".")
-            products=allLst[1].split(".")
-            
-            if sorted(reactants)==sorted(products):
-                ic(elem)
-                ic("Equals reactants and products")
-                continue
-            reactants=self.canonicalize(reactants)
-            products=self.canonicalize(products)
-            rxAll.extend(self.createRxVariatons(reactants,products,numVariations))
-            
-            
-            
-#            ic(formSMIRKSromLst(reactants,products))
-#            ic(self.createRxVariatons(reactants,products))
-#            ic(elem)
-        #shuffle(rxAll)
+        self.enumerator.nTrials=numVariations
+        
+        
+       
         
         return rxAll
             
